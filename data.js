@@ -21,10 +21,9 @@ const MY_STORES = [
     name: "MGM Forest Lake",
     address: "2009 West Broadway Ave #100, Forest Lake, MN 55025",
     city: "Forest Lake, MN",
-    // Best-estimate coords for 2009 W Broadway Ave (downtown Forest Lake
-    // commercial strip). VERIFY against Google Maps and adjust.
-    lat: 45.2793,
-    lng: -92.9893,
+    // Verified coordinates (owner-confirmed via Google Maps).
+    lat: 45.283269,
+    lng: -93.010158,
     tradeAreaMiles: 5,
     notes: "Anchor store on the Hwy 61 / I-35 corridor. Trade area pulls from Forest Lake, Wyoming, Columbus, Linwood, and weekend lake traffic."
   },
