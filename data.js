@@ -32,10 +32,9 @@ const MY_STORES = [
     name: "MGM Hugo",
     address: "5441 140th St N, Hugo, MN 55038",
     city: "Hugo, MN",
-    // Best-estimate coords for 5441 140th St N (Hugo core near Hwy 61 /
-    // 140th intersection). VERIFY against Google Maps and adjust.
-    lat: 45.1614,
-    lng: -92.9933,
+    // Verified coordinates (owner-confirmed via Google Maps).
+    lat: 45.152,
+    lng: -92.99716,
     tradeAreaMiles: 4,
     notes: "Bedroom-community store. Trade area: Hugo, Centerville, Lino Lakes, parts of White Bear Township. Heavy commuter traffic on Hwy 61."
   },
