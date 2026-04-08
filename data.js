@@ -41,6 +41,7 @@ const MY_STORES = [
   {
     id: "chisago",
     name: "MGM Chisago City",
+    address: "10575 Wyoming Ave #100, Chisago City, MN 55013",
     city: "Chisago City, MN",
     // Verified coordinates (owner-confirmed via Google Maps).
     lat: 45.3723,
