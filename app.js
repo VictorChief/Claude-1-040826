@@ -68,7 +68,7 @@ MY_STORES.forEach((s) => {
   });
   marker.bindPopup(
     `<div class="popup-title">${s.name}</div>
-     <div class="popup-meta">${s.city}</div>
+     <div class="popup-meta">${s.address || s.city}</div>
      <div class="popup-impact popup-mgm">
        Trade area: ~${s.tradeAreaMiles} mi<br>${s.notes}
      </div>`

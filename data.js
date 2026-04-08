@@ -19,18 +19,24 @@ const MY_STORES = [
   {
     id: "forest-lake",
     name: "MGM Forest Lake",
+    address: "2009 West Broadway Ave #100, Forest Lake, MN 55025",
     city: "Forest Lake, MN",
-    lat: 45.2791,
-    lng: -92.9852,
+    // Best-estimate coords for 2009 W Broadway Ave (downtown Forest Lake
+    // commercial strip). VERIFY against Google Maps and adjust.
+    lat: 45.2793,
+    lng: -92.9893,
     tradeAreaMiles: 5,
     notes: "Anchor store on the Hwy 61 / I-35 corridor. Trade area pulls from Forest Lake, Wyoming, Columbus, Linwood, and weekend lake traffic."
   },
   {
     id: "hugo",
     name: "MGM Hugo",
+    address: "5441 140th St N, Hugo, MN 55038",
     city: "Hugo, MN",
-    lat: 45.1608,
-    lng: -92.9938,
+    // Best-estimate coords for 5441 140th St N (Hugo core near Hwy 61 /
+    // 140th intersection). VERIFY against Google Maps and adjust.
+    lat: 45.1614,
+    lng: -92.9933,
     tradeAreaMiles: 4,
     notes: "Bedroom-community store. Trade area: Hugo, Centerville, Lino Lakes, parts of White Bear Township. Heavy commuter traffic on Hwy 61."
   },
