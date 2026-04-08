@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MGM Wine &amp; Spirits — Owner Competitive Intel</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="title-block">
+      <h1>MGM Wine &amp; Spirits — Owner Dashboard</h1>
+      <p class="subtitle">Forest Lake · Hugo · Chisago City — Competitive Intelligence</p>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="dot mgm"></span> My Stores</span>
+      <span class="legend-item"><span class="dot big-box"></span> Big-Box</span>
+      <span class="legend-item"><span class="dot specialty"></span> Independent</span>
+      <span class="legend-item"><span class="dot municipal"></span> Municipal</span>
+      <span class="legend-item"><span class="dot grocery"></span> Grocery</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="my-stores">
+        <h2>My Stores</h2>
+        <div id="my-stores-list"></div>
+      </section>
+
+      <section class="filters">
+        <h2>Filters</h2>
+        <label><input type="checkbox" data-filter="big-box" checked /> Big-Box (Total Wine, Costco)</label>
+        <label><input type="checkbox" data-filter="specialty" checked /> Independent / Specialty</label>
+        <label><input type="checkbox" data-filter="municipal" checked /> Municipal Liquor</label>
+        <label><input type="checkbox" data-filter="grocery" checked /> Grocery Wine &amp; Spirits</label>
+        <hr />
+        <label class="threat-filter">
+          Min threat level
+          <select id="threat-min">
+            <option value="1">1+ (all)</option>
+            <option value="2">2+</option>
+            <option value="3" selected>3+ (notable)</option>
+            <option value="4">4+ (high)</option>
+            <option value="5">5 (critical only)</option>
+          </select>
+        </label>
+        <label class="threat-filter">
+          Pressuring
+          <select id="store-filter">
+            <option value="all">All my stores</option>
+            <option value="forest-lake">Forest Lake only</option>
+            <option value="hugo">Hugo only</option>
+            <option value="chisago">Chisago City only</option>
+          </select>
+        </label>
+        <label>
+          <input type="checkbox" id="show-rings" checked />
+          Show trade-area rings
+        </label>
+      </section>
+
+      <section class="competitor-list">
+        <h2>Competitors <span id="count"></span></h2>
+        <ul id="list"></ul>
+      </section>
+
+      <footer class="disclaimer">
+        <strong>Data note:</strong> Coordinates, names, and threat scores are
+        approximate placeholders compiled from general knowledge of the
+        Chisago / NE-metro market. Replace with your verified data
+        (<code>data.js</code>) before relying on this for pricing,
+        assortment, or capital decisions.
+      </footer>
+    </aside>
+
+    <div id="map" role="application" aria-label="Map of MGM stores and competitors"></div>
+  </main>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
