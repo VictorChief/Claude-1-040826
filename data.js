@@ -43,8 +43,9 @@ const MY_STORES = [
     id: "chisago",
     name: "MGM Chisago City",
     city: "Chisago City, MN",
-    lat: 45.3744,
-    lng: -92.8888,
+    // Verified coordinates (owner-confirmed via Google Maps).
+    lat: 45.3723,
+    lng: -92.89176,
     tradeAreaMiles: 5,
     notes: "Hwy 8 corridor store. Trade area: Chisago City, Lindstrom, Center City, Shafer, weekend cabin traffic to/from Taylors Falls."
   }
