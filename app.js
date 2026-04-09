@@ -46,6 +46,8 @@ function circleIcon(color, size = 14, ring = false) {
 // ---------- Annotate competitors with distance to each MGM ----------
 COMPETITORS.forEach((c) => {
   c.distances = {};
+  c.drivingDistances = {};
+  c.drivingDurations = {};
   MY_STORES.forEach((s) => {
     c.distances[s.id] = milesBetween(c, s);
   });
@@ -54,6 +56,101 @@ COMPETITORS.forEach((c) => {
     { id: null, name: null, dist: Infinity }
   );
 });
+
+// ---------- OSRM driving-distance fetch + localStorage cache ----------
+// Uses the free public OSRM demo server (no API key). We cache aggressively
+// so the network hit only happens once per store/competitor pair. Straight-
+// line Haversine distance is always available as a fallback.
+const OSRM_HOST = "https://router.project-osrm.org";
+const DRV_CACHE_VERSION = "v1";
+
+function drvCacheKey(from, to) {
+  return `drv:${DRV_CACHE_VERSION}:${from.lat.toFixed(5)},${from.lng.toFixed(5)}->${to.lat.toFixed(5)},${to.lng.toFixed(5)}`;
+}
+
+async function fetchOsrmDrive(from, to) {
+  const url = `${OSRM_HOST}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=false`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`OSRM ${res.status}`);
+  const data = await res.json();
+  if (!data.routes || data.routes.length === 0) throw new Error("No route");
+  return {
+    miles: data.routes[0].distance / 1609.34,
+    minutes: data.routes[0].duration / 60
+  };
+}
+
+function setDrvStatus(text, tone = "info") {
+  const el = document.getElementById("drv-status");
+  if (!el) return;
+  el.textContent = text;
+  el.dataset.tone = tone;
+}
+
+async function annotateDrivingDistances() {
+  setDrvStatus("Loading driving distances…", "loading");
+  let loaded = 0;
+  let failures = 0;
+  let fromCache = 0;
+  const queue = [];
+
+  for (const c of COMPETITORS) {
+    for (const s of MY_STORES) {
+      const key = drvCacheKey(s, c);
+      let cached = null;
+      try { cached = localStorage.getItem(key); } catch (e) { /* privacy mode */ }
+      if (cached) {
+        try {
+          const { miles, minutes } = JSON.parse(cached);
+          c.drivingDistances[s.id] = miles;
+          c.drivingDurations[s.id] = minutes;
+          fromCache++;
+          continue;
+        } catch (e) { /* corrupt cache entry, refetch */ }
+      }
+      queue.push({ c, s, key });
+    }
+  }
+
+  // Gentle rate limit on the public OSRM demo (~6 req/sec).
+  for (const { c, s, key } of queue) {
+    try {
+      const { miles, minutes } = await fetchOsrmDrive(s, c);
+      c.drivingDistances[s.id] = miles;
+      c.drivingDurations[s.id] = minutes;
+      try { localStorage.setItem(key, JSON.stringify({ miles, minutes })); } catch (e) {}
+      loaded++;
+    } catch (e) {
+      failures++;
+    }
+    if (loaded % 5 === 0 && queue.length > 0) {
+      setDrvStatus(`Loading driving distances… ${loaded + failures}/${queue.length}`, "loading");
+    }
+    await new Promise((r) => setTimeout(r, 160));
+  }
+
+  // Recompute "nearest store" using drive distance where available.
+  for (const c of COMPETITORS) {
+    const drives = MY_STORES
+      .map((s) => ({ id: s.id, name: s.name, miles: c.drivingDistances[s.id], minutes: c.drivingDurations[s.id] }))
+      .filter((x) => typeof x.miles === "number");
+    if (drives.length > 0) {
+      c.nearestDriveStore = drives.reduce((a, b) => (a.miles < b.miles ? a : b));
+    }
+  }
+
+  if (failures === 0 && queue.length === 0) {
+    setDrvStatus(`Driving distances: ${fromCache} cached`, "ok");
+  } else if (failures === 0) {
+    setDrvStatus(`Driving distances loaded (${loaded} fetched, ${fromCache} cached)`, "ok");
+  } else if (loaded + fromCache > 0) {
+    setDrvStatus(`Driving distances: ${loaded + fromCache} ok, ${failures} failed (line-distance fallback)`, "warn");
+  } else {
+    setDrvStatus("Driving API unavailable — using straight-line distance", "error");
+  }
+
+  renderCompetitors();
+}
 
 // ---------- Layers ----------
 const mgmLayer = L.layerGroup().addTo(map);
@@ -99,9 +196,19 @@ function competitorPopup(c) {
   const distRows = MY_STORES.map((s) => {
     const d = c.distances[s.id];
     const strong = d <= s.tradeAreaMiles;
+    const drv = c.drivingDistances[s.id];
+    const mins = c.drivingDurations[s.id];
+    const drvStr = typeof drv === "number"
+      ? `<span class="drv">${drv.toFixed(1)} mi · ${Math.round(mins)} min drive</span>`
+      : `<span class="drv muted">line only</span>`;
     return `<div class="dist-row ${strong ? "dist-hit" : ""}">
-              ${s.name}: <strong>${d.toFixed(1)} mi</strong>
-              ${strong ? " ⚠ inside trade area" : ""}
+              <div class="dist-row-head">
+                ${s.name.replace("MGM ", "")}
+                ${strong ? '<span class="hit-flag">⚠ in trade area</span>' : ""}
+              </div>
+              <div class="dist-row-body">
+                <span>${d.toFixed(1)} mi line</span> · ${drvStr}
+              </div>
             </div>`;
   }).join("");
 
@@ -137,7 +244,12 @@ function renderCompetitors() {
   const filters = getActiveFilters();
 
   const visible = COMPETITORS.filter((c) => passesFilters(c, filters))
-    .sort((a, b) => b.threat - a.threat || a.nearestStore.dist - b.nearestStore.dist);
+    .sort((a, b) => {
+      if (b.threat !== a.threat) return b.threat - a.threat;
+      const aDist = (a.nearestDriveStore && a.nearestDriveStore.miles) ?? a.nearestStore.dist;
+      const bDist = (b.nearestDriveStore && b.nearestDriveStore.miles) ?? b.nearestStore.dist;
+      return aDist - bDist;
+    });
 
   visible.forEach((c) => {
     const marker = L.marker([c.lat, c.lng], {
@@ -146,13 +258,19 @@ function renderCompetitors() {
     marker.addTo(competitorLayer);
     competitorMarkers.set(c.name, marker);
 
+    const nearName = (c.nearestDriveStore ? c.nearestDriveStore.name : c.nearestStore.name).replace("MGM ", "");
+    const nearMi = c.nearestDriveStore ? c.nearestDriveStore.miles : c.nearestStore.dist;
+    const nearMin = c.nearestDriveStore ? Math.round(c.nearestDriveStore.minutes) : null;
+    const nearStr = nearMin !== null
+      ? `${nearMi.toFixed(1)} mi / ${nearMin} min drive`
+      : `${nearMi.toFixed(1)} mi line`;
+
     const li = document.createElement("li");
     li.innerHTML = `
       <span class="swatch" style="background:${COLORS[c.category]}"></span>
       <div>
         <div><strong>${c.name}</strong> ${threatBadge(c.threat)}</div>
-        <div class="meta">${c.city} · nearest: ${c.nearestStore.name.replace("MGM ", "")}
-          (${c.nearestStore.dist.toFixed(1)} mi)</div>
+        <div class="meta">${c.city} · nearest: ${nearName} (${nearStr})</div>
       </div>`;
     li.addEventListener("click", () => {
       map.setView([c.lat, c.lng], 13, { animate: true });
@@ -213,3 +331,11 @@ renderCompetitors();
 // Fit bounds to all MGM stores + their trade areas
 const bounds = L.latLngBounds(MY_STORES.map((s) => [s.lat, s.lng])).pad(0.5);
 map.fitBounds(bounds);
+
+// Kick off driving-distance annotation. First visit hits OSRM once per
+// store/competitor pair (~60 requests at ~160ms each); subsequent visits
+// load instantly from localStorage.
+annotateDrivingDistances().catch((e) => {
+  console.error("Driving distance annotation failed:", e);
+  setDrvStatus("Driving distances unavailable", "error");
+});

@@ -193,8 +193,36 @@ body {
   font-size: 0.75rem;
   color: #4b5563;
 }
-.dist-row { padding: 1px 0; }
-.dist-row.dist-hit { color: #b91c1c; font-weight: 600; }
+.dist-row {
+  padding: 4px 0;
+  border-top: 1px solid #f1f5f9;
+}
+.dist-row:first-child { border-top: none; }
+.dist-row-head {
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.dist-row-body { margin-top: 2px; color: #6b7280; }
+.dist-row .drv { color: #1f2937; font-weight: 600; }
+.dist-row .drv.muted { color: #9ca3af; font-weight: 400; font-style: italic; }
+.dist-row.dist-hit .dist-row-head { color: #b91c1c; }
+.hit-flag { font-size: 0.68rem; color: #b91c1c; font-weight: 600; }
+
+#drv-status {
+  margin: 4px 0 0;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  color: #fef2f2;
+}
+#drv-status[data-tone="loading"] { background: rgba(234,179,8,0.35); }
+#drv-status[data-tone="ok"]      { background: rgba(34,197,94,0.35); }
+#drv-status[data-tone="warn"]    { background: rgba(234,88,12,0.4); }
+#drv-status[data-tone="error"]   { background: rgba(185,28,28,0.5); }
 #count {
   font-size: 0.75rem;
   color: #9ca3af;
