@@ -3,10 +3,14 @@
 // ---------- Map setup ----------
 const map = L.map("map", { zoomControl: true }).setView([45.25, -92.95], 11);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
   maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  subdomains: "abcd",
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 }).addTo(map);
+
+// Ensure container size is measured after layout settles (prevents edge-tile gaps)
+setTimeout(() => map.invalidateSize(), 200);
 
 // ---------- Color palette ----------
 const COLORS = {
